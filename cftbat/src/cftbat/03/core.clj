@@ -37,7 +37,23 @@
 (println (re-find #"^left-" "cleft-chin"))
 (println (re-find #"^left-" "wongleblart"))
 
-;;
+;; reduce
+(println (reduce + [1 2 3 4]))
+(println (reduce + 15 [1 2 3 4]))
+
+(defn my-reduce
+  ([f initial coll]
+   (loop [result initial
+          remaining coll]
+     (if (empty? remaining)
+       result
+       (recur (f result (first remaining)) (rest remaining)))))
+  ([f [head & tail]]
+   (my-reduce f head tail)))
+
+(println (my-reduce + 15 [1 2 3 4]))
+
+;; hobbit
 (def asym-hobbit-body-parts [{:name "head" :size 3}
                              {:name "left-eye" :size 1}
                              {:name "left-ear" :size 1}
@@ -58,3 +74,29 @@
                              {:name "left-achilles" :size 1}
                              {:name "left-foot" :size 2}])
 
+(defn matching-part
+  [part]
+  {:name (clojure.string/replace (:name part) #"^left-" "right-")
+   :size (:size part)})
+
+(defn symmetrize-body-parts
+  ":name과 :size가 대응되는 일련의 순서쌍을 기대"
+  [asym-body-parts]
+  (loop [remaining-asym-parts asym-body-parts
+         final-body-parts []]
+    (if (empty? remaining-asym-parts)
+      final-body-parts
+      (let [[part & remaining] remaining-asym-parts]
+        (recur remaining
+               (into final-body-parts
+                     (set [part (matching-part part)])))))))
+(println (symmetrize-body-parts asym-hobbit-body-parts))
+
+(defn better-symmetrize-body-parts
+  ":name과 :size가 대응되는 일련의 순서쌍을 기대"
+  [asym-body-parts]
+  (reduce (fn [final-body-parts part]
+            (into final-body-parts (set [part (matching-part part)])))
+          []
+          asym-body-parts))
+(println (better-symmetrize-body-parts asym-hobbit-body-parts))
