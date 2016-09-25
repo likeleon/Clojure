@@ -1,4 +1,4 @@
-(ns cftbat.03)
+(ns cftbat.03.core)
 
 ;; let
 (def dalmatian-list
