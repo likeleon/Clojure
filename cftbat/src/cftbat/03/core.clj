@@ -100,3 +100,51 @@
           []
           asym-body-parts))
 (println (better-symmetrize-body-parts asym-hobbit-body-parts))
+
+(defn hit
+  [asym-body-parts]
+  (let [sym-parts (better-symmetrize-body-parts asym-body-parts)
+        body-part-size-sum (reduce + (map :size sym-parts))
+        target (rand body-part-size-sum)]
+    (loop [[part & remaining] sym-parts
+           accumulated-size (:size part)]
+      (if (> accumulated-size target)
+        part
+        (recur remaining (+ accumulated-size (:size (first remaining))))))))
+
+(println (hit asym-hobbit-body-parts))
+
+;; excercise 1
+(println(str "Hello" ", World"))
+(println (vector 1 2 3 4 5))
+(println (list 1 2 3 4 5))
+(println (hash-map :name "likeleon" :age 34))
+(println (hash-set 1 1 2 3))
+
+;; excercies 2
+(defn add-100
+  [num]
+  (+ num 100))
+(println (add-100 5))
+
+;; exercise 3
+(defn dec-maker
+  [dec-by]
+  #(- % dec-by))
+(def dec9 (dec-maker 9))
+(println (dec9 10))
+
+;; exercise 4
+(defn mapset-loop
+  [f coll]
+  (loop [remaining coll
+         result #{}]
+    (if (empty? remaining)
+      result
+      (recur (rest remaining) (into result #{(f (first remaining))})))))
+(println (mapset-loop inc [1 1 2 2]))
+
+(defn mapset-map
+  [f coll]
+  (set (map f coll)))
+(println (mapset-map inc [1 1 2 2]))
