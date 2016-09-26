@@ -35,4 +35,41 @@
   [minimum-glitter records]
   (filter #(>= (:glitter-index %) minimum-glitter) records))
 
-(println (glitter-filter 3 (mapify (parse (slurp filename)))))
+(def records (mapify (parse (slurp filename))))
+(println (glitter-filter 3 records))
+
+;; exercise 1
+(defn glitter-filter-name
+  [minimum-glitter records]
+  (map #(:name %)
+       (glitter-filter minimum-glitter records)))
+
+(println (glitter-filter-name 3 records))
+
+;; exercise 2
+(defn append
+  [records name glitter-index]
+    (conj records {:name name
+                   :glitter-index glitter-index}))
+
+;; exercise 3
+(defn validate
+  [validators, record]
+  (every? true?
+          (map #((get validators %) (get record %))
+               vamp-keys)))
+
+(def not-nil? (complement nil?))
+
+(println (validate {:name not-nil?
+                    :glitter-index not-nil?}
+                   {:name "likeleon" :glitter-index 5}))
+
+;; exercise 4
+(defn to-csv
+  [records]
+  (clojure.string/join
+    "\r\n"
+    (map #(clojure.string/join "," (vals %)) records)))
+
+(println (to-csv records))
