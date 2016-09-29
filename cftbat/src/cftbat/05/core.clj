@@ -324,3 +324,33 @@
   [& args]
   (println "Get ready to play peg thing!")
   (prompt-rows))
+
+;; exercise 1
+(defn attr [k, char] ((comp k :attributes) char))
+(defn attr2 [k, char] (k (:attributes char)))
+(def attr3 #(%1 (:attributes %2)))
+(defn attr4 [k] (comp k :attributes))
+
+;; exercise 2
+(defn my-comp
+  [& funcs]
+  (fn [& args]
+    (reduce (fn [result next-fn] (next-fn result))
+            (apply (last funcs) args)
+            (rest (reverse funcs)))))
+
+;; exercise 3
+(defn my-assoc-in
+  [m [& ks] v]
+  (reduce (fn [result k] (assoc {} k result))
+          (assoc m (last ks) v)
+          (rest (reverse ks))))
+
+;; exercise 4
+(println (update-in {:a {:b 5 :c 3}} [:a, :b] inc))
+
+;; exercise 5
+(defn my-update-in
+  [m [& ks] f & args]
+  (if-let [v (get-in m ks)]
+    (assoc-in m ks (apply f (cons v args)))))
