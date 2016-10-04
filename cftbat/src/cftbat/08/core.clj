@@ -86,22 +86,27 @@
                 :strength 4
                 :dexterity 5}})
 
-(defn define-attr-func
-  [name attr]
-  `(def name (comp ~attr :attributes)))
+(defn define-attr-fn
+  [fn-name attr]
+  `(def ~fn-name (comp ~attr :attributes)))
 
 (defmacro defattrs
-  [name attr & others]
-  `(def ~name (comp ~attr :attributes)))
+  ([] nil)
+  ([fn-name attr]
+   (define-attr-fn fn-name attr))
+  ([fn-name attr & rest]
+   `(do
+      (defattrs ~fn-name ~attr)
+      (defattrs ~@rest))))
 
-(println
-  (macroexpand
-    `(defattrs c-int :intelligence
-               c-str :strength
-               c-dex :dexterity)))
+(println (macroexpand `(defattrs c-int :intelligence
+                                 c-str :strength
+                                 c-dex :dexterity)))
 
 (defattrs c-int :intelligence
           c-str :strength
           c-dex :dexterity)
 
 (println (c-int character))
+(println (c-str character))
+(println (c-dex character))
