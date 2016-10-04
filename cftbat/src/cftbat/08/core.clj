@@ -91,13 +91,9 @@
   `(def ~fn-name (comp ~attr :attributes)))
 
 (defmacro defattrs
-  ([] nil)
-  ([fn-name attr]
-   (define-attr-fn fn-name attr))
-  ([fn-name attr & rest]
-   `(do
-      (defattrs ~fn-name ~attr)
-      (defattrs ~@rest))))
+  [& fn-name-attrs#]
+  `(do ~@(map #(define-attr-fn (first %) (second %))
+              (partition 2 fn-name-attrs#))))
 
 (println (macroexpand `(defattrs c-int :intelligence
                                  c-str :strength
