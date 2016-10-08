@@ -33,26 +33,45 @@
            (enqueue saying (wait 100 "Cheerio!") (println @saying))))
 
 ;; exercise 1
-(defn google-search-url
+(defn make-google-search-url
   [keyword]
   (str "https://www.google.co.kr/?gws_rd=ssl#q=" keyword))
 
-(defn bing-search-url
+(defn make-bing-search-url
   [keyword]
   (str "https://www.bing.com/search?q=" keyword))
 
-(defn search-web
-  ([keyword search-engines]
+(def search-engines {:google make-google-search-url :bing make-bing-search-url})
+
+(defn search-with-engine
+  [keyword engine]
+  (let [url-builder (engine search-engines)
+        url (url-builder keyword)]
+    (slurp url)))
+
+(defn get-search-result
+  ([keyword [& engines]]
    (let [result (promise)]
-     (doseq [url (map #(% keyword) search-engines)]
-       (future (deliver result (slurp url))))
+     (doseq [engine engines]
+       (future (deliver result (search-with-engine keyword engine))))
      (deref result 2000 "timed out")))
   ([keyword]
-   (search-web keyword [google-search-url bing-search-url])))
+   (get-search-result keyword (keys search-engines))))
 
-(defn search-web-all
-  ([keyword search-engines]
-   (let [futures (map #(slurp (% keyword)) search-engines)]
-     map #(deref % 2000 nil) futures))
+(defn extract-urls
+  [html-body]
+  (let [matches (re-seq #"href=\"([^\" ]*)\"" html-body)]
+    (filter #(clojure.string/starts-with? % "http") (map second matches))))
+
+(defn get-urls-with-engine
+  [keyword engine]
+  (let [result (search-with-engine keyword engine)]
+    (extract-urls result)))
+
+(defn get-urls-search
+  ([keyword [& engines]]
+   (let [futures (map #(future (get-urls-with-engine keyword %)) engines)
+         urls-each-engine (map #(deref % 2000 nil) futures)]
+     (into [] (reduce concat urls-each-engine))))
   ([keyword]
-   (search-web-all keyword [google-search-url bing-search-url])))
+   (get-urls-search keyword (keys search-engines))))
