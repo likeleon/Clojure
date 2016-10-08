@@ -20,13 +20,13 @@
 
 (defmacro enqueue
   ([q concurrent-promise-name concurrent serialized]
-    `(let [~concurrent-promise-name (promise)]
-       (future (deliver ~concurrent-promise-name ~concurrent))
-       (deref ~q)
-       ~serialized
-       ~concurrent-promise-name))
+   `(let [~concurrent-promise-name (promise)]
+      (future (deliver ~concurrent-promise-name ~concurrent))
+      (deref ~q)
+      ~serialized
+      ~concurrent-promise-name))
   ([concurrent-promise-name concurrent serialized]
-    `(enqueue (future) ~concurrent-promise-name ~concurrent ~serialized)))
+   `(enqueue (future) ~concurrent-promise-name ~concurrent ~serialized)))
 
 (time @(-> (enqueue saying (wait 200 "'Ello, gov'na!") (println @saying))
            (enqueue saying (wait 400 "Pip pip!") (println @saying))
@@ -41,13 +41,18 @@
   [keyword]
   (str "https://www.bing.com/search?q=" keyword))
 
-(defn search-web-url
-  [url]
-  (slurp url))
-
 (defn search-web
-  [keyword]
-  (let [result (promise)]
-    (future (deliver result (search-web-url (google-search-url keyword))))
-    (future (deliver result (search-web-url (bing-search-url keyword))))
-    (deref result 2000 "timed out")))
+  ([keyword search-engines]
+   (let [result (promise)]
+     (doseq [url (map #(% keyword) search-engines)]
+       (future (deliver result (slurp url))))
+     (deref result 2000 "timed out")))
+  ([keyword]
+   (search-web keyword [google-search-url bing-search-url])))
+
+(defn search-web-all
+  ([keyword search-engines]
+   (let [futures (map #(slurp (% keyword)) search-engines)]
+     map #(deref % 2000 nil) futures))
+  ([keyword]
+   (search-web-all keyword [google-search-url bing-search-url])))
