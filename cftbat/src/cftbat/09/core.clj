@@ -72,6 +72,6 @@
   ([keyword [& engines]]
    (let [futures (map #(future (get-urls-with-engine keyword %)) engines)
          urls-each-engine (map #(deref % 2000 nil) futures)]
-     (into [] (reduce concat urls-each-engine))))
+     (into [] (apply concat urls-each-engine))))
   ([keyword]
    (get-urls-search keyword (keys search-engines))))
