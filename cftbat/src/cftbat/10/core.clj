@@ -19,3 +19,13 @@
     (doseq [count-per-quote counts-per-quote]
       (swap! counts #(merge-with + % @count-per-quote)))
     @counts))
+
+;; exercise 3
+(def first-character (ref {:hp 15}))
+(def second-character (ref #{:potion}))
+
+(defn heal
+  [healer target]
+  (dosync
+    (alter healer disj target :potion)
+    (alter target update-in [:hp] + 10)))
